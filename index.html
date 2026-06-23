@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Kinerja Petugas BKN</title>
   
+  <!-- PWA Setup -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#013068">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -934,6 +939,10 @@
       }
       document.getElementById('print-meta-date').innerText = `Rentang Waktu: ${rangeText}`;
 
+      // Kalkulasi Grand Total NIP yang akan dicetak
+      const grandTotalNIP = filteredData.reduce((sum, row) => sum + (parseInt(row.jumlahNIP) || 0), 0);
+      document.getElementById('print-meta-total-nip').innerText = `Total Akumulasi NIP: ${grandTotalNIP.toLocaleString('id-ID')}`;
+
       const originalTitle = document.title;
       document.title = `Laporan Kinerja Pencatatan Arsip IVc ke Atas_${safeRangeForTitle}`;
 
@@ -963,6 +972,10 @@
       const now = new Date();
       document.getElementById('modal-print-meta-timestamp').innerText = `Waktu Ekspor: ${now.toLocaleString('id-ID')}`;
       document.getElementById('modal-print-meta-date').innerText = `Tanggal Data: ${selectedDateForModal}`;
+
+      // Kalkulasi Grand Total NIP untuk Pegawai Spesifik di Cetak Detail
+      const totalNipModal = calculateTotalNIP(selectedRowsForModal);
+      document.getElementById('modal-print-meta-total-nip').innerText = `Total Akumulasi NIP: ${totalNipModal.toLocaleString('id-ID')}`;
 
       const originalTitle = document.title;
       const safeDateForTitle = selectedDateForModal.replace(/\//g, '-');
@@ -1058,6 +1071,17 @@
         XLSX.writeFile(wb, `Data_Pegawai_${safeName}.xlsx`);
       }
     };
+
+    // Registrasi Service Worker untuk PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(registration => {
+          console.log('ServiceWorker terdaftar dengan sukses: ', registration.scope);
+        }).catch(err => {
+          console.log('Pendaftaran ServiceWorker gagal: ', err);
+        });
+      });
+    }
 
     window.onload = () => { fetchData(); };
   </script>
