@@ -288,8 +288,9 @@
             <h2 class="text-base font-medium text-slate-700 m-0">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
           </div>
         </div>
-        <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2">
+        <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2 border-t border-slate-200 pt-2">
           <span id="print-meta-date">Rentang Waktu: -</span>
+          <span id="print-meta-total-nip" class="text-[#013068] font-bold text-sm">Total Akumulasi NIP: -</span>
           <span id="print-meta-timestamp">Waktu Cetak: -</span>
         </div>
       </div>
@@ -335,8 +336,9 @@
               <h2 class="text-base font-medium text-slate-700 m-0">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
             </div>
           </div>
-          <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2">
+          <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2 border-t border-slate-200 pt-2">
             <span id="modal-print-meta-date">Rentang Waktu: -</span>
+            <span id="modal-print-meta-total-nip" class="text-[#013068] font-bold text-sm">Total Akumulasi NIP: -</span>
             <span id="modal-print-meta-timestamp">Waktu Cetak: -</span>
           </div>
         </div>
@@ -468,6 +470,12 @@
       return allNips.split(/[\n\r,]+/).map(n => n.trim()).filter(n => n !== '').join(', ');
     };
 
+    // Fungsi utilitas tambahan untuk mendapatkan NIP ke dalam bentuk array murni
+    const getNIPArray = (rows) => {
+      const allNips = rows.map(r => r.daftarNIP).filter(Boolean).join('\n');
+      return allNips.split(/[\n\r,]+/).map(n => n.trim()).filter(n => n !== '');
+    };
+
     // --- LOGIKA APLIKASI ---
     const tablesWrapper = document.getElementById('tables-wrapper');
     const syncIcon = document.getElementById('sync-icon');
@@ -581,6 +589,22 @@
             </div>
           `;
       });
+
+      // Menambahkan Halaman Terakhir Khusus Rekap Grand Total PDF
+      const grandTotalNIP = filteredData.reduce((sum, row) => sum + (parseInt(row.jumlahNIP) || 0), 0);
+      htmlContent += `
+          <div class="mt-8 print-page-break">
+            <h3 class="text-xl font-bold text-[#013068] mb-4 text-center uppercase border-b-2 border-[#013068] pb-2">Halaman Ringkasan</h3>
+            <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
+              <tbody class="bg-white">
+                <tr class="bg-slate-100 font-bold text-lg">
+                  <td class="px-4 py-6 text-left border border-slate-300 uppercase">Grand Total Akumulasi Seluruh NIP Yang Dikerjakan:</td>
+                  <td class="px-4 py-6 text-center text-[#013068] border border-slate-300 w-1/4">${grandTotalNIP.toLocaleString('id-ID')}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+      `;
 
       printContainer.innerHTML = htmlContent;
     };
@@ -1009,37 +1033,55 @@
           const uniqueDates = [...new Set(rows.map(r => r.tanggal).filter(Boolean))].sort((a,b) => parseDateString(a) - parseDateString(b));
           let dateStr = uniqueDates.length > 1 ? `${uniqueDates[0]} s/d ${uniqueDates[uniqueDates.length - 1]}` : (uniqueDates[0] || '-');
           
-          exportByPerson[nama] = [{
+          exportByPerson[nama] = [];
+          const baseRow = {
             Tanggal: dateStr,
             "Nama Petugas": nama,
             Rollopack: getUniqueValues(rows, 'rollopack'),
             Lemari: getUniqueValues(rows, 'lemari'),
             Rak: getUniqueValues(rows, 'rak'),
-            "Total NIP": calculateTotalNIP(rows),
-            "Daftar NIP": mergeDaftarNIP(rows)
-          }];
+            "Total NIP": calculateTotalNIP(rows)
+          };
+
+          const nips = getNIPArray(rows);
+          if(nips.length === 0) {
+              exportByPerson[nama].push({...baseRow, "Daftar NIP": "-"});
+          } else {
+              nips.forEach(nip => {
+                  exportByPerson[nama].push({...baseRow, "Daftar NIP": nip});
+              });
+          }
         });
       } else {
         sortedDates.forEach(tgl => {
           Object.keys(aggregatedByDateAndName[tgl]).forEach(nama => {
             if(!exportByPerson[nama]) exportByPerson[nama] = [];
             const rows = aggregatedByDateAndName[tgl][nama];
-            exportByPerson[nama].push({
+            
+            const baseRow = {
               Tanggal: tgl,
               "Nama Petugas": nama,
               Rollopack: getUniqueValues(rows, 'rollopack'),
               Lemari: getUniqueValues(rows, 'lemari'),
               Rak: getUniqueValues(rows, 'rak'),
-              "Total NIP": calculateTotalNIP(rows),
-              "Daftar NIP": mergeDaftarNIP(rows)
-            });
+              "Total NIP": calculateTotalNIP(rows)
+            };
+
+            const nips = getNIPArray(rows);
+            if(nips.length === 0) {
+                exportByPerson[nama].push({...baseRow, "Daftar NIP": "-"});
+            } else {
+                nips.forEach(nip => {
+                    exportByPerson[nama].push({...baseRow, "Daftar NIP": nip});
+                });
+            }
           });
         });
       }
 
       Object.keys(exportByPerson).sort().forEach(nama => {
         const ws = XLSX.utils.json_to_sheet(exportByPerson[nama]);
-        ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 12}, {wch: 50}];
+        ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 12}, {wch: 30}];
         let sheetName = nama.substring(0, 31).replace(/[\/\?*:"\[\]]/g, '');
         if(!sheetName) sheetName = "Sheet";
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
@@ -1050,19 +1092,28 @@
 
     const exportModalToExcel = () => {
       if (selectedRowsForModal.length > 0) {
-        const payload = [{
+        let payload = [];
+        const baseRow = {
           Tanggal: selectedDateForModal,
           "Nama Petugas": selectedNameForModal,
           Rollopack: getUniqueValues(selectedRowsForModal, 'rollopack'),
           Lemari: getUniqueValues(selectedRowsForModal, 'lemari'),
           Rak: getUniqueValues(selectedRowsForModal, 'rak'),
-          "Total NIP": calculateTotalNIP(selectedRowsForModal),
-          "Daftar NIP": mergeDaftarNIP(selectedRowsForModal)
-        }];
+          "Total NIP": calculateTotalNIP(selectedRowsForModal)
+        };
+
+        const nips = getNIPArray(selectedRowsForModal);
+        if(nips.length === 0) {
+            payload.push({...baseRow, "Daftar NIP": "-"});
+        } else {
+            nips.forEach(nip => {
+                payload.push({...baseRow, "Daftar NIP": nip});
+            });
+        }
         
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(payload);
-        ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 12}, {wch: 50}];
+        ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 12}, {wch: 30}];
 
         let sheetName = selectedNameForModal.substring(0, 31).replace(/[\/\?*:"\[\]]/g, '');
         XLSX.utils.book_append_sheet(wb, ws, sheetName || "Data");
