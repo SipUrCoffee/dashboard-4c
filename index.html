@@ -450,13 +450,14 @@
     const htmlEl = document.documentElement;
     const themeIcon = document.getElementById('theme-icon');
 
-    // Cek LocalStorage untuk memori preferensi tema
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    // Cek LocalStorage untuk memori preferensi tema (Default dibuat Light)
+    if (localStorage.getItem('theme') === 'dark') {
       htmlEl.classList.add('dark');
       themeIcon.setAttribute('data-lucide', 'sun');
     } else {
       htmlEl.classList.remove('dark');
       themeIcon.setAttribute('data-lucide', 'moon');
+      localStorage.setItem('theme', 'light'); // Memaksa tema awal menjadi terang
     }
 
     const toggleTheme = () => {
