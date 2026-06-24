@@ -3,15 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Kinerja Pencatatan Arsip IV/c ke Atas</title>
+  <title>Dashboard Kinerja Petugas BKN</title>
   
   <!-- PWA Setup -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#013068">
   <link rel="apple-touch-icon" href="./icon-192.png">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Config for Dark Mode -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Mengaktifkan toggle dark mode berbasis class HTML
+    }
+  </script>
+  
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- SheetJS (Excel Export Library) -->
@@ -28,6 +34,12 @@
         visibility: hidden;
       }
       
+      /* Memaksa background putih dan teks hitam saat dicetak (meskipun mode gelap aktif) */
+      body, .dark body {
+        background-color: white !important;
+        color: black !important;
+      }
+
       body, html {
         height: auto !important;
         overflow: visible !important;
@@ -35,6 +47,7 @@
 
       .print-container, .print-container * {
         visibility: visible;
+        color: black !important;
       }
       
       .print-container {
@@ -74,10 +87,15 @@
       }
       
       th, td {
-        border: 1px solid #ddd;
+        border: 1px solid #ddd !important;
         padding: 8px;
         text-align: left;
         font-size: 12px;
+      }
+
+      th {
+        background-color: #f2f2f2 !important;
+        color: black !important;
       }
 
       tr {
@@ -122,43 +140,59 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
 
-  <!-- HEADER UTAMA -->
-  <header class="bg-[#013068] text-white py-6 shadow-md no-print shrink-0">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center gap-4">
-      <div class="flex-shrink-0 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-        <img 
-          src="https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_Badan_Kepegawaian_Negara.png" 
-          alt="Logo BKN" 
-          class="h-14 w-auto drop-shadow-md"
-        />
+  <!-- HEADER UTAMA (Sticky/Fixed di atas) -->
+  <header class="bg-[#013068] text-white py-4 shadow-lg no-print shrink-0 sticky top-0 z-40 transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-4">
+      
+      <!-- Bagian Kiri: Logo & Judul -->
+      <div class="flex items-center gap-4 w-full lg:w-auto justify-center lg:justify-start">
+        <div class="flex-shrink-0 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_Badan_Kepegawaian_Negara.png" 
+            alt="Logo BKN" 
+            class="h-12 w-auto drop-shadow-md"
+          />
+        </div>
+        <div class="text-center lg:text-left">
+          <h1 class="text-xl sm:text-2xl font-bold tracking-wide text-[#FFD700]">Dashboard Kinerja Pencatatan Arsip ASN Gol IV/c ke Atas</h1>
+          <p class="text-xs sm:text-sm text-blue-200 mt-1">Direktorat Arsip Kepegawaian ASN</p>
+        </div>
       </div>
-      <div class="text-center sm:text-left">
-        <h1 class="text-2xl font-bold tracking-wide text-[#FFD700]">Dashboard Kinerja Pencatatan Arsip ASN Gol IV/c ke Atas</h1>
-        <p class="text-sm text-blue-200 mt-1">Direktorat Arsip Kepegawaian ASN</p>
+
+      <!-- Bagian Kanan: Jam Real-time & Theme Toggle -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10 shadow-inner">
+          <i data-lucide="clock" class="h-4 w-4 text-[#FFD700]"></i>
+          <span id="live-clock" class="text-sm font-medium tracking-wide text-blue-50">Memuat waktu...</span>
+        </div>
+        <button onclick="toggleTheme()" class="bg-white/10 hover:bg-white/20 p-2.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFD700] shadow-inner border border-white/10" title="Ubah Tema">
+          <i data-lucide="moon" id="theme-icon" class="h-4 w-4 text-[#FFD700]"></i>
+        </button>
       </div>
+
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
     
     <!-- FILTER & ACTIONS SECTION -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8 no-print">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 mb-8 no-print transition-colors duration-300">
       <div class="flex flex-col md:flex-row justify-between gap-6">
         
         <!-- Search Box -->
         <div class="flex-1">
-          <label class="block text-sm font-semibold text-slate-600 mb-2">Cari Nama Petugas</label>
+          <label class="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Cari Nama Petugas</label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i data-lucide="search" class="h-5 w-5 text-slate-400"></i>
+              <i data-lucide="search" class="h-5 w-5 text-slate-400 dark:text-slate-500"></i>
             </div>
             <input
               type="text"
               id="search-input"
               placeholder="Masukkan nama petugas..."
-              class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#013068] focus:border-[#013068] transition-all duration-200 sm:text-sm"
+              class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#013068] dark:focus:ring-[#FFD700] transition-all duration-200 sm:text-sm"
             />
           </div>
         </div>
@@ -167,28 +201,28 @@
         <div class="flex flex-col gap-3">
           <div class="flex flex-col sm:flex-row gap-4">
             <div>
-              <label class="block text-sm font-semibold text-slate-600 mb-2">Mulai Tanggal</label>
+              <label class="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Mulai Tanggal</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="calendar" class="h-4 w-4 text-slate-400"></i>
+                  <i data-lucide="calendar" class="h-4 w-4 text-slate-400 dark:text-slate-500"></i>
                 </div>
                 <input
                   type="date"
                   id="start-date"
-                  class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#013068] transition-all duration-200 sm:text-sm"
+                  class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#013068] dark:focus:ring-[#FFD700] transition-all duration-200 sm:text-sm"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-semibold text-slate-600 mb-2">Sampai Tanggal</label>
+              <label class="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Sampai Tanggal</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="calendar" class="h-4 w-4 text-slate-400"></i>
+                  <i data-lucide="calendar" class="h-4 w-4 text-slate-400 dark:text-slate-500"></i>
                 </div>
                 <input
                   type="date"
                   id="end-date"
-                  class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#013068] transition-all duration-200 sm:text-sm"
+                  class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#013068] dark:focus:ring-[#FFD700] transition-all duration-200 sm:text-sm"
                 />
               </div>
             </div>
@@ -198,7 +232,7 @@
             <button
               id="btn-reset"
               onclick="resetFilters()"
-              class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+              class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-red-500 transition-colors"
             >
               <i data-lucide="filter-x" class="h-4 w-4"></i>
               <span>Reset Filter</span>
@@ -208,29 +242,29 @@
       </div>
 
       <!-- Actions & Accumulation Info -->
-      <div class="mt-6 flex flex-col md:flex-row flex-wrap items-start md:items-center justify-between gap-4 border-t border-slate-100 pt-6">
+      <div class="mt-6 flex flex-col md:flex-row flex-wrap items-start md:items-center justify-between gap-4 border-t border-slate-100 dark:border-slate-700 pt-6">
         <div class="flex flex-wrap items-center gap-4">
           <button
             id="btn-sync"
             onclick="fetchData()"
-            class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#013068] transition-colors"
+            class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-[#013068] dark:focus:ring-[#FFD700] transition-colors"
           >
-            <i data-lucide="refresh-cw" id="sync-icon" class="h-4 w-4 text-slate-500"></i>
+            <i data-lucide="refresh-cw" id="sync-icon" class="h-4 w-4 text-slate-500 dark:text-slate-400"></i>
             <span id="sync-text">Sinkronisasi</span>
           </button>
 
-          <span id="last-sync-time" class="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
+          <span id="last-sync-time" class="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
             Terakhir disinkronisasi: -
           </span>
 
           <div class="flex items-center gap-3">
-            <div class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-              <span class="text-slate-500">Total Pegawai (Aktif):</span>
-              <span class="font-bold text-[#013068] text-base" id="total-rows">0</span>
+            <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+              <span class="text-slate-500 dark:text-slate-400">Total Pegawai (Aktif):</span>
+              <span class="font-bold text-[#013068] dark:text-[#FFD700] text-base" id="total-rows">0</span>
             </div>
-            <div class="bg-[#FFD700]/20 border border-[#FFD700]/50 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-              <span class="text-[#013068] font-medium">Akumulasi NIP:</span>
-              <span class="font-bold text-green-700 text-base" id="total-nips">0</span>
+            <div class="bg-[#FFD700]/20 dark:bg-[#FFD700]/10 border border-[#FFD700]/50 dark:border-[#FFD700]/30 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+              <span class="text-[#013068] dark:text-[#FFD700] font-medium">Akumulasi NIP:</span>
+              <span class="font-bold text-green-700 dark:text-green-400 text-base" id="total-nips">0</span>
             </div>
           </div>
         </div>
@@ -238,14 +272,14 @@
         <div class="flex gap-3">
           <button
             onclick="exportAllToExcel()"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#013068] bg-blue-50 hover:bg-blue-100 transition-colors"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#013068] dark:text-blue-200 bg-blue-50 dark:bg-[#013068]/50 border border-transparent dark:border-blue-500/30 hover:bg-blue-100 dark:hover:bg-[#013068]/80 transition-colors"
           >
             <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
             Ekspor (XLS)
           </button>
           <button
             onclick="handlePrintMain()"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#013068] hover:bg-blue-900 shadow-sm transition-colors"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white dark:text-slate-900 bg-[#013068] dark:bg-[#FFD700] hover:bg-blue-900 dark:hover:bg-yellow-500 shadow-sm transition-colors"
           >
             <i data-lucide="file-text" class="h-4 w-4"></i>
             Cetak (PDF)
@@ -255,23 +289,23 @@
     </div>
 
     <!-- ERROR MESSAGE -->
-    <div id="error-message" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-8 rounded-r-lg">
+    <div id="error-message" class="hidden bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 mb-8 rounded-r-lg">
       <div class="flex">
         <div class="ml-3">
-          <p id="error-text" class="text-sm text-red-700 font-medium"></p>
+          <p id="error-text" class="text-sm text-red-700 dark:text-red-400 font-medium"></p>
         </div>
       </div>
     </div>
 
     <!-- PAGINATION CONTROLS (Atas) -->
     <div id="pagination-top" class="hidden flex justify-between items-center mb-4 no-print">
-      <button onclick="changePage(-1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+      <button onclick="changePage(-1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i data-lucide="chevron-left" class="h-4 w-4"></i> Sebelumnya
       </button>
-      <span id="page-info-top" class="text-sm font-medium text-slate-600 bg-white px-4 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+      <span id="page-info-top" class="text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
         Halaman - dari -
       </span>
-      <button onclick="changePage(1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+      <button onclick="changePage(1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         Selanjutnya <i data-lucide="chevron-right" class="h-4 w-4"></i>
       </button>
     </div>
@@ -284,14 +318,14 @@
         <div class="flex items-center justify-center gap-4 mb-4">
           <img src="https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_Badan_Kepegawaian_Negara.png" alt="Logo BKN" style="height: 60px; width: auto;" />
           <div class="text-center">
-            <h1 class="text-xl font-bold uppercase tracking-wider m-0">Rekapitulasi Kinerja Petugas</h1>
-            <h2 class="text-base font-medium text-slate-700 m-0">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
+            <h1 class="text-xl font-bold uppercase tracking-wider m-0" style="color: black !important;">Rekapitulasi Kinerja Petugas</h1>
+            <h2 class="text-base font-medium text-slate-700 m-0" style="color: black !important;">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
           </div>
         </div>
         <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2 border-t border-slate-200 pt-2">
-          <span id="print-meta-date">Rentang Waktu: -</span>
-          <span id="print-meta-total-nip" class="text-[#013068] font-bold text-sm">Total Akumulasi NIP: -</span>
-          <span id="print-meta-timestamp">Waktu Cetak: -</span>
+          <span id="print-meta-date" style="color: black !important;">Rentang Waktu: -</span>
+          <span id="print-meta-total-nip" class="font-bold text-sm" style="color: black !important;">Total Akumulasi NIP: -</span>
+          <span id="print-meta-timestamp" style="color: black !important;">Waktu Cetak: -</span>
         </div>
       </div>
 
@@ -306,13 +340,13 @@
 
     <!-- PAGINATION CONTROLS (Bawah) -->
     <div id="pagination-bottom" class="hidden flex justify-between items-center mt-4 no-print">
-      <button onclick="changePage(-1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+      <button onclick="changePage(-1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i data-lucide="chevron-left" class="h-4 w-4"></i> Sebelumnya
       </button>
-      <span id="page-info-bottom" class="text-sm font-medium text-slate-600">
+      <span id="page-info-bottom" class="text-sm font-medium text-slate-600 dark:text-slate-400">
         Halaman - dari -
       </span>
-      <button onclick="changePage(1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+      <button onclick="changePage(1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         Selanjutnya <i data-lucide="chevron-right" class="h-4 w-4"></i>
       </button>
     </div>
@@ -322,24 +356,24 @@
   <!-- DETAIL MODAL -->
   <div id="detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-      <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity no-print" aria-hidden="true" onclick="closeModal()"></div>
+      <div class="fixed inset-0 bg-slate-900 bg-opacity-75 dark:bg-opacity-90 transition-opacity no-print" aria-hidden="true" onclick="closeModal()"></div>
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-      <div id="modal-content-container" class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full">
+      <div id="modal-content-container" class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full border border-transparent dark:border-slate-700">
         
         <!-- PRINT HEADER KHUSUS MODAL -->
         <div id="modal-custom-print-header" class="hidden print-header-custom border-b-2 border-black pb-4 mb-2 px-6 pt-6">
           <div class="flex items-center justify-center gap-4 mb-4">
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_Badan_Kepegawaian_Negara.png" alt="Logo BKN" style="height: 60px; width: auto;" />
             <div class="text-center">
-              <h1 class="text-xl font-bold uppercase tracking-wider m-0">Rekapitulasi Kinerja Petugas</h1>
-              <h2 class="text-base font-medium text-slate-700 m-0">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
+              <h1 class="text-xl font-bold uppercase tracking-wider m-0" style="color: black !important;">Rekapitulasi Kinerja Petugas</h1>
+              <h2 class="text-base font-medium text-slate-700 m-0" style="color: black !important;">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
             </div>
           </div>
           <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2 border-t border-slate-200 pt-2">
-            <span id="modal-print-meta-date">Rentang Waktu: -</span>
-            <span id="modal-print-meta-total-nip" class="text-[#013068] font-bold text-sm">Total Akumulasi NIP: -</span>
-            <span id="modal-print-meta-timestamp">Waktu Cetak: -</span>
+            <span id="modal-print-meta-date" style="color: black !important;">Rentang Waktu: -</span>
+            <span id="modal-print-meta-total-nip" class="font-bold text-sm" style="color: black !important;">Total Akumulasi NIP: -</span>
+            <span id="modal-print-meta-timestamp" style="color: black !important;">Waktu Cetak: -</span>
           </div>
         </div>
 
@@ -356,39 +390,39 @@
           </button>
         </div>
 
-        <div class="px-6 py-6 bg-white modal-body">
+        <div class="px-6 py-6 modal-body">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-              <p class="text-xs text-slate-500 font-semibold mb-1 uppercase">Rollopack</p>
-              <p class="text-base font-bold text-[#013068]" id="modal-rollopack">-</p>
+            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-600 text-center">
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 uppercase">Rollopack</p>
+              <p class="text-base font-bold text-[#013068] dark:text-[#FFD700]" id="modal-rollopack">-</p>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-              <p class="text-xs text-slate-500 font-semibold mb-1 uppercase">Lemari</p>
-              <p class="text-base font-bold text-[#013068]" id="modal-lemari">-</p>
+            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-600 text-center">
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 uppercase">Lemari</p>
+              <p class="text-base font-bold text-[#013068] dark:text-[#FFD700]" id="modal-lemari">-</p>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-              <p class="text-xs text-slate-500 font-semibold mb-1 uppercase">Rak</p>
-              <p class="text-base font-bold text-[#013068]" id="modal-rak">-</p>
+            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-600 text-center">
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 uppercase">Rak</p>
+              <p class="text-base font-bold text-[#013068] dark:text-[#FFD700]" id="modal-rak">-</p>
             </div>
-            <div class="bg-[#FFD700]/10 rounded-xl p-4 border border-[#FFD700]/30 text-center">
-              <p class="text-xs text-[#013068] font-semibold mb-1 uppercase">Total NIP</p>
-              <p class="text-xl font-bold text-[#013068]" id="modal-jumlah">-</p>
+            <div class="bg-[#FFD700]/10 dark:bg-[#FFD700]/20 rounded-xl p-4 border border-[#FFD700]/30 text-center">
+              <p class="text-xs text-[#013068] dark:text-[#FFD700] font-semibold mb-1 uppercase">Total NIP</p>
+              <p class="text-xl font-bold text-[#013068] dark:text-[#FFD700]" id="modal-jumlah">-</p>
             </div>
           </div>
 
           <div class="mt-6">
-            <h4 class="text-md font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-              <i data-lucide="check-circle-2" class="h-5 w-5 text-green-500"></i>
+            <h4 class="text-md font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-700 pb-2">
+              <i data-lucide="check-circle-2" class="h-5 w-5 text-green-500 dark:text-green-400"></i>
               Daftar NIP yang Dikerjakan
             </h4>
-            <div id="modal-daftar-nip" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm font-mono text-slate-700 max-h-60 overflow-y-auto">
+            <div id="modal-daftar-nip" class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-mono text-slate-700 dark:text-slate-300 max-h-60 overflow-y-auto">
               <!-- NIP List -->
             </div>
           </div>
         </div>
 
-        <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 rounded-b-2xl no-print border-t border-slate-200">
-          <button onclick="exportModalToExcel()" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#013068] bg-white border border-[#013068] hover:bg-blue-50 transition-colors">
+        <div class="bg-slate-50 dark:bg-slate-800/80 px-6 py-4 flex items-center justify-end gap-3 rounded-b-2xl no-print border-t border-slate-200 dark:border-slate-700">
+          <button onclick="exportModalToExcel()" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#013068] dark:text-blue-200 bg-white dark:bg-transparent border border-[#013068] dark:border-blue-500/50 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors">
             <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
             Ekspor Pegawai (XLS)
           </button>
@@ -404,19 +438,47 @@
   <script>
     lucide.createIcons();
 
+    // --- JAM LIVE & THEME TOGGLE ---
+    const updateClock = () => {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('live-clock').innerText = now.toLocaleDateString('id-ID', options);
+    };
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    const htmlEl = document.documentElement;
+    const themeIcon = document.getElementById('theme-icon');
+
+    // Cek LocalStorage untuk memori preferensi tema
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      htmlEl.classList.add('dark');
+      themeIcon.setAttribute('data-lucide', 'sun');
+    } else {
+      htmlEl.classList.remove('dark');
+      themeIcon.setAttribute('data-lucide', 'moon');
+    }
+
+    const toggleTheme = () => {
+      htmlEl.classList.toggle('dark');
+      if (htmlEl.classList.contains('dark')) {
+        localStorage.setItem('theme', 'dark');
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        localStorage.setItem('theme', 'light');
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons(); 
+    };
+
+    // --- DATA & APP ---
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1Bpms38P4gMe6ExpgEgxfHMvzRHn-ZUp4fhDrlcYRobk/export?format=csv&gid=655231786';
 
     let globalData = [];
     let filteredData = [];
-    
-    // Aggregation Variables
     let aggregatedByDateAndName = {}; 
     let sortedDates = [];
-    
-    // Pagination Variables
     let currentPageIndex = 0;
-    
-    // Modal Target Data
     let selectedRowsForModal = []; 
     let selectedNameForModal = '';
     let selectedDateForModal = '';
@@ -470,7 +532,6 @@
       return allNips.split(/[\n\r,]+/).map(n => n.trim()).filter(n => n !== '').join(', ');
     };
 
-    // Fungsi utilitas tambahan untuk mendapatkan NIP ke dalam bentuk array murni
     const getNIPArray = (rows) => {
       const allNips = rows.map(r => r.daftarNIP).filter(Boolean).join('\n');
       return allNips.split(/[\n\r,]+/).map(n => n.trim()).filter(n => n !== '');
@@ -501,7 +562,6 @@
 
     const updatePaginationUI = () => {
       const totalPages = sortedDates.length;
-      
       document.getElementById('page-info-top').innerHTML = `Halaman <b>${totalPages === 0 ? 0 : currentPageIndex + 1}</b> dari <b>${totalPages}</b>`;
       document.getElementById('page-info-bottom').innerHTML = `Halaman <b>${totalPages === 0 ? 0 : currentPageIndex + 1}</b> dari <b>${totalPages}</b>`;
 
@@ -515,11 +575,9 @@
           }
         }
       });
-      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // FUNGSI UNTUK MENGHASILKAN LAYOUT CETAK PDF UTAMA (GROUP BY NAMA LALU TANGGAL)
     const generateMainPrintLayout = () => {
       const printContainer = document.getElementById('main-print-layout');
       if (!printContainer) return;
@@ -527,7 +585,6 @@
 
       if (filteredData.length === 0) return;
 
-      // Group by Name first
       let aggregatedByName = {};
       filteredData.forEach(row => {
         const nama = row.namaPetugas || 'Tanpa Nama';
@@ -540,7 +597,6 @@
 
       sortedNames.forEach((nama, index) => {
           const rows = aggregatedByName[nama];
-          // Sort rows by Date ascending
           rows.sort((a, b) => parseDateString(a.tanggal) - parseDateString(b.tanggal));
 
           let totalNIPPerson = 0;
@@ -548,24 +604,23 @@
 
           rows.forEach(row => {
             totalNIPPerson += parseInt(row.jumlahNIP) || 0;
-            // format daftar NIP memanjang ke samping
             const formattedNIP = row.daftarNIP ? row.daftarNIP.split(/[\n\r,]+/).map(n=>n.trim()).filter(Boolean).join(', ') : '-';
 
               tbodyRows += `
                   <tr>
-                    <td class="px-4 py-2 text-sm border border-slate-300">${row.tanggal}</td>
-                    <td class="px-4 py-2 text-sm text-center border border-slate-300">${row.rollopack || '-'}</td>
-                    <td class="px-4 py-2 text-sm text-center border border-slate-300">${row.lemari || '-'}</td>
-                    <td class="px-4 py-2 text-sm text-center border border-slate-300">${row.rak || '-'}</td>
-                    <td class="px-4 py-2 text-sm text-center font-semibold border border-slate-300">${row.jumlahNIP || '0'}</td>
-                    <td class="px-4 py-2 text-sm border border-slate-300" style="white-space: normal; word-wrap: break-word;">${formattedNIP}</td>
+                    <td class="px-4 py-2 text-sm border border-slate-300" style="color: black !important;">${row.tanggal}</td>
+                    <td class="px-4 py-2 text-sm text-center border border-slate-300" style="color: black !important;">${row.rollopack || '-'}</td>
+                    <td class="px-4 py-2 text-sm text-center border border-slate-300" style="color: black !important;">${row.lemari || '-'}</td>
+                    <td class="px-4 py-2 text-sm text-center border border-slate-300" style="color: black !important;">${row.rak || '-'}</td>
+                    <td class="px-4 py-2 text-sm text-center font-semibold border border-slate-300" style="color: black !important;">${row.jumlahNIP || '0'}</td>
+                    <td class="px-4 py-2 text-sm border border-slate-300" style="white-space: normal; word-wrap: break-word; color: black !important;">${formattedNIP}</td>
                   </tr>
               `;
           });
 
           htmlContent += `
             <div class="mb-8 ${index > 0 ? 'print-page-break' : ''}">
-              <h3 class="text-lg font-bold text-[#013068] mb-3 border-b-2 border-[#013068] pb-2 uppercase" style="page-break-after: avoid; break-after: avoid;">Data Kinerja: ${nama}</h3>
+              <h3 class="text-lg font-bold text-[#013068] mb-3 border-b-2 border-[#013068] pb-2 uppercase" style="page-break-after: avoid; break-after: avoid; color: black !important;">Data Kinerja: ${nama}</h3>
               <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
                 <thead class="bg-[#013068]">
                   <tr>
@@ -580,8 +635,8 @@
                 <tbody class="bg-white divide-y divide-slate-100">
                   ${tbodyRows}
                   <tr class="bg-slate-100 font-bold">
-                    <td colspan="4" class="px-4 py-2 text-right border border-slate-300 uppercase text-xs">Akumulasi Total NIP:</td>
-                    <td class="px-4 py-2 text-center text-[#013068] text-base border border-slate-300">${totalNIPPerson}</td>
+                    <td colspan="4" class="px-4 py-2 text-right border border-slate-300 uppercase text-xs" style="color: black !important;">Akumulasi Total NIP:</td>
+                    <td class="px-4 py-2 text-center text-[#013068] text-base border border-slate-300" style="color: black !important;">${totalNIPPerson}</td>
                     <td class="px-4 py-2 border border-slate-300"></td>
                   </tr>
                 </tbody>
@@ -590,15 +645,14 @@
           `;
       });
 
-      // Menambahkan Tabel Khusus Rekap Grand Total PDF tanpa memisah ke halaman baru
       const grandTotalNIP = filteredData.reduce((sum, row) => sum + (parseInt(row.jumlahNIP) || 0), 0);
       htmlContent += `
           <div class="mt-8">
             <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
               <tbody class="bg-white">
                 <tr class="bg-slate-100 font-bold text-lg">
-                  <td class="px-4 py-4 text-right border border-slate-300 uppercase">Grand Total Akumulasi Seluruh NIP Yang Dikerjakan:</td>
-                  <td class="px-4 py-4 text-center text-[#013068] border border-slate-300 w-1/4">${grandTotalNIP.toLocaleString('id-ID')}</td>
+                  <td class="px-4 py-4 text-right border border-slate-300 uppercase" style="color: black !important;">Grand Total Akumulasi Seluruh NIP Yang Dikerjakan:</td>
+                  <td class="px-4 py-4 text-center text-[#013068] border border-slate-300 w-1/4" style="color: black !important;">${grandTotalNIP.toLocaleString('id-ID')}</td>
                 </tr>
               </tbody>
             </table>
@@ -613,14 +667,13 @@
       aggregatedByDateAndName = {};
 
       if (filteredData.length === 0) {
-        tablesWrapper.innerHTML = `<div class="bg-white shadow-sm rounded-2xl border border-slate-100 p-12 text-center text-slate-500 font-medium">Tidak ada data yang cocok.</div>`;
+        tablesWrapper.innerHTML = `<div class="bg-white dark:bg-slate-800 shadow-sm rounded-2xl border border-slate-100 dark:border-slate-700 p-12 text-center text-slate-500 dark:text-slate-400 font-medium">Tidak ada data yang cocok.</div>`;
         totalRows.innerText = '0';
         totalNipsElement.innerText = '0';
         document.getElementById('pagination-top').classList.add('hidden');
         document.getElementById('pagination-bottom').classList.add('hidden');
         sortedDates = [];
-        
-        generateMainPrintLayout(); // Generate layout kosong jika tidak ada data
+        generateMainPrintLayout(); 
         return;
       }
 
@@ -648,7 +701,7 @@
         const sortedNames = Object.keys(aggregatedByName).sort();
 
         const groupWrapper = document.createElement('div');
-        groupWrapper.className = `bg-white shadow-sm rounded-2xl overflow-hidden border border-slate-100 mb-8`;
+        groupWrapper.className = `bg-white dark:bg-slate-800 shadow-sm rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 mb-8`;
         
         let tbodyHTML = '';
         sortedNames.forEach(nama => {
@@ -657,23 +710,23 @@
           const safeNama = nama.replace(/'/g, "\\'");
 
           tbodyHTML += `
-            <tr class="hover:bg-slate-50 transition-colors group">
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <i data-lucide="user-circle" class="h-8 w-8 text-[#013068] opacity-20 group-hover:opacity-100 transition-opacity mr-3"></i>
-                  <div class="text-sm font-semibold text-[#013068]">${nama}</div>
-                  ${personRows.length > 1 ? `<span class="ml-2 text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full no-print">${personRows.length} Entri Gabungan</span>` : ''}
+                  <i data-lucide="user-circle" class="h-8 w-8 text-[#013068] dark:text-[#FFD700] opacity-20 group-hover:opacity-100 transition-opacity mr-3"></i>
+                  <div class="text-sm font-semibold text-[#013068] dark:text-[#FFD700]">${nama}</div>
+                  ${personRows.length > 1 ? `<span class="ml-2 text-[10px] bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 px-2 py-0.5 rounded-full no-print">${personRows.length} Entri Gabungan</span>` : ''}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                   Total: ${aggregatedNIP} NIP
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                 <button
                   onclick="openModalSearch('${safeNama}')"
-                  class="inline-flex items-center text-sm text-[#013068] hover:text-[#FFD700] hover:underline font-semibold transition-colors"
+                  class="inline-flex items-center text-sm text-[#013068] dark:text-blue-300 hover:text-[#FFD700] hover:underline font-semibold transition-colors"
                 >
                   Lihat Detail <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
                 </button>
@@ -683,15 +736,15 @@
         });
 
         groupWrapper.innerHTML = `
-          <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <h2 class="text-lg font-bold text-[#013068] flex items-center gap-2">
-              <i data-lucide="search" class="h-5 w-5 text-[#FFD700]"></i>
+          <div class="bg-slate-50 dark:bg-slate-800/80 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h2 class="text-lg font-bold text-[#013068] dark:text-[#FFD700] flex items-center gap-2">
+              <i data-lucide="search" class="h-5 w-5"></i>
               Hasil Pencarian: "${searchInput.value}"
             </h2>
-            <span class="text-sm font-medium text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">${sortedNames.length} Pegawai Ditemukan</span>
+            <span class="text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-600 shadow-sm">${sortedNames.length} Pegawai Ditemukan</span>
           </div>
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
               <thead class="bg-[#013068]">
                 <tr>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[#FFD700] uppercase tracking-wider">Nama Petugas</th>
@@ -699,7 +752,7 @@
                   <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-[#FFD700] uppercase tracking-wider no-print">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-slate-100">
+              <tbody class="bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700/50">
                 ${tbodyHTML}
               </tbody>
             </table>
@@ -711,7 +764,6 @@
         document.getElementById('pagination-bottom').classList.add('hidden');
         
         generateMainPrintLayout(); 
-        
         lucide.createIcons();
         return; 
       }
@@ -739,7 +791,7 @@
 
         const groupWrapper = document.createElement('div');
         groupWrapper.id = `date-group-${index}`;
-        groupWrapper.className = `bg-white shadow-sm rounded-2xl overflow-hidden border border-slate-100 mb-8 ${index > 0 ? 'print-page-break' : ''} ${index !== 0 ? 'page-hidden' : ''}`;
+        groupWrapper.className = `bg-white dark:bg-slate-800 shadow-sm rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 mb-8 ${index > 0 ? 'print-page-break' : ''} ${index !== 0 ? 'page-hidden' : ''}`;
 
         let tbodyHTML = '';
         personNames.forEach(nama => {
@@ -750,23 +802,23 @@
           const safeNama = nama.replace(/'/g, "\\'");
 
           tbodyHTML += `
-            <tr class="hover:bg-slate-50 transition-colors group">
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <i data-lucide="user-circle" class="h-8 w-8 text-[#013068] opacity-20 group-hover:opacity-100 transition-opacity mr-3"></i>
-                  <div class="text-sm font-semibold text-[#013068]">${nama}</div>
-                  ${personRows.length > 1 ? `<span class="ml-2 text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full no-print">${personRows.length} Entri</span>` : ''}
+                  <i data-lucide="user-circle" class="h-8 w-8 text-[#013068] dark:text-[#FFD700] opacity-20 group-hover:opacity-100 transition-opacity mr-3"></i>
+                  <div class="text-sm font-semibold text-[#013068] dark:text-[#FFD700]">${nama}</div>
+                  ${personRows.length > 1 ? `<span class="ml-2 text-[10px] bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200 px-2 py-0.5 rounded-full no-print">${personRows.length} Entri</span>` : ''}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                   Total: ${aggregatedNIP} NIP
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                 <button
                   onclick="openModal('${safeTanggal}', '${safeNama}')"
-                  class="inline-flex items-center text-sm text-[#013068] hover:text-[#FFD700] hover:underline font-semibold transition-colors"
+                  class="inline-flex items-center text-sm text-[#013068] dark:text-blue-300 hover:text-[#FFD700] hover:underline font-semibold transition-colors"
                 >
                   Lihat Detail <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
                 </button>
@@ -776,15 +828,15 @@
         });
 
         groupWrapper.innerHTML = `
-          <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <h2 class="text-lg font-bold text-[#013068] flex items-center gap-2">
-              <i data-lucide="calendar-days" class="h-5 w-5 text-[#FFD700]"></i>
+          <div class="bg-slate-50 dark:bg-slate-800/80 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h2 class="text-lg font-bold text-[#013068] dark:text-[#FFD700] flex items-center gap-2">
+              <i data-lucide="calendar-days" class="h-5 w-5"></i>
               Tanggal Data: ${tanggal}
             </h2>
-            <span class="text-sm font-medium text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">${personNames.length} Pegawai Terdata</span>
+            <span class="text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-600 shadow-sm">${personNames.length} Pegawai Terdata</span>
           </div>
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
               <thead class="bg-[#013068]">
                 <tr>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[#FFD700] uppercase tracking-wider">Nama Petugas</th>
@@ -792,7 +844,7 @@
                   <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-[#FFD700] uppercase tracking-wider no-print">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-slate-100">
+              <tbody class="bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700/50">
                 ${tbodyHTML}
               </tbody>
             </table>
@@ -811,9 +863,7 @@
 
       currentPageIndex = 0;
       updatePaginationUI();
-      
       generateMainPrintLayout(); 
-      
       lucide.createIcons();
     };
 
@@ -845,10 +895,11 @@
 
     const fetchData = async () => {
       document.getElementById('btn-sync').disabled = true;
-      syncIcon.classList.replace('text-slate-500', 'text-blue-500');
+      syncIcon.classList.add('animate-spin');
+      syncIcon.classList.replace('text-slate-500', 'text-[#FFD700]');
       document.getElementById('error-message').classList.add('hidden');
       
-      tablesWrapper.innerHTML = `<div class="bg-white shadow-sm rounded-2xl border border-slate-100 p-12 text-center text-slate-500"><i data-lucide="download" class="h-8 w-8 text-[#013068] mx-auto mb-3"></i>Memuat data dari Spreadsheet...</div>`;
+      tablesWrapper.innerHTML = `<div class="bg-white dark:bg-slate-800 shadow-sm rounded-2xl border border-slate-100 dark:border-slate-700 p-12 text-center text-slate-500 dark:text-slate-400"><i data-lucide="download" class="h-8 w-8 text-[#013068] dark:text-[#FFD700] mx-auto mb-3"></i>Memuat data dari Spreadsheet...</div>`;
       lucide.createIcons();
 
       try {
@@ -880,10 +931,11 @@
       } catch (err) {
         document.getElementById('error-text').innerText = err.message;
         document.getElementById('error-message').classList.remove('hidden');
-        tablesWrapper.innerHTML = `<div class="bg-red-50 text-red-500 p-6 rounded-xl text-center">Gagal memuat data.</div>`;
+        tablesWrapper.innerHTML = `<div class="bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 p-6 rounded-xl text-center">Gagal memuat data.</div>`;
       } finally {
         document.getElementById('btn-sync').disabled = false;
-        syncIcon.classList.replace('text-blue-500', 'text-slate-500');
+        syncIcon.classList.remove('animate-spin');
+        syncIcon.classList.replace('text-[#FFD700]', 'text-slate-500');
         const now = new Date();
         document.getElementById('last-sync-time').innerText = `Terakhir disinkronisasi: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}`;
       }
@@ -934,7 +986,7 @@
       document.getElementById('modal-jumlah').innerText = calculateTotalNIP(rows);
       
       const mergedNIP = mergeDaftarNIP(rows);
-      document.getElementById('modal-daftar-nip').innerHTML = mergedNIP || '<span class="text-slate-400 italic">Tidak ada NIP terdaftar.</span>';
+      document.getElementById('modal-daftar-nip').innerHTML = mergedNIP || '<span class="text-slate-400 dark:text-slate-500 italic">Tidak ada NIP terdaftar.</span>';
     };
 
     const closeModal = () => {
@@ -962,14 +1014,12 @@
       }
       document.getElementById('print-meta-date').innerText = `Rentang Waktu: ${rangeText}`;
 
-      // Kalkulasi Grand Total NIP yang akan dicetak
       const grandTotalNIP = filteredData.reduce((sum, row) => sum + (parseInt(row.jumlahNIP) || 0), 0);
       document.getElementById('print-meta-total-nip').innerText = `Total Akumulasi NIP: ${grandTotalNIP.toLocaleString('id-ID')}`;
 
       const originalTitle = document.title;
       document.title = `Laporan Kinerja Pencatatan Arsip IVc ke Atas_${safeRangeForTitle}`;
 
-      // Tampilkan template print khusus halaman utama & Sembunyikan Mode Layar
       const tablesWrapperEl = document.getElementById('tables-wrapper');
       const printLayoutEl = document.getElementById('main-print-layout');
       const paginationTopEl = document.getElementById('pagination-top');
@@ -982,7 +1032,6 @@
 
       window.print();
 
-      // Kembalikan ke tampilan normal setelah print
       if(tablesWrapperEl) tablesWrapperEl.classList.remove('no-print');
       if(paginationTopEl) paginationTopEl.classList.remove('no-print');
       if(paginationBotEl) paginationBotEl.classList.remove('no-print');
@@ -996,7 +1045,6 @@
       document.getElementById('modal-print-meta-timestamp').innerText = `Waktu Ekspor: ${now.toLocaleString('id-ID')}`;
       document.getElementById('modal-print-meta-date').innerText = `Tanggal Data: ${selectedDateForModal}`;
 
-      // Kalkulasi Grand Total NIP untuk Pegawai Spesifik di Cetak Detail
       const totalNipModal = calculateTotalNIP(selectedRowsForModal);
       document.getElementById('modal-print-meta-total-nip').innerText = `Total Akumulasi NIP: ${totalNipModal.toLocaleString('id-ID')}`;
 
@@ -1016,29 +1064,67 @@
       }
       
       const wb = XLSX.utils.book_new();
+      const isSearchingByName = searchInput.value.trim() !== '';
       let exportByPerson = {};
 
-      filteredData.forEach(row => {
-        const nama = row.namaPetugas || 'Tanpa Nama';
-        if (!exportByPerson[nama]) exportByPerson[nama] = [];
-        
-        const baseRow = {
-          Tanggal: row.tanggal || '-',
-          "Nama Petugas": nama,
-          Rollopack: row.rollopack || '-',
-          Lemari: row.lemari || '-',
-          Rak: row.rak || '-'
-        };
+      if (isSearchingByName) {
+        let aggregatedByName = {};
+        filteredData.forEach(row => {
+          const nama = row.namaPetugas || 'Tanpa Nama';
+          if (!aggregatedByName[nama]) aggregatedByName[nama] = [];
+          aggregatedByName[nama].push(row);
+        });
 
-        const nips = getNIPArray([row]);
-        if(nips.length === 0) {
-            exportByPerson[nama].push({...baseRow, "Daftar NIP": "-"});
-        } else {
-            nips.forEach(nip => {
-                exportByPerson[nama].push({...baseRow, "Daftar NIP": nip});
+        Object.keys(aggregatedByName).sort().forEach(nama => {
+          exportByPerson[nama] = [];
+          const rows = aggregatedByName[nama];
+          
+          rows.forEach(row => {
+            const baseRow = {
+              Tanggal: row.tanggal || '-',
+              "Nama Petugas": nama,
+              Rollopack: row.rollopack || '-',
+              Lemari: row.lemari || '-',
+              Rak: row.rak || '-'
+            };
+
+            const nips = getNIPArray([row]);
+            if(nips.length === 0) {
+                exportByPerson[nama].push({...baseRow, "Daftar NIP": "-"});
+            } else {
+                nips.forEach(nip => {
+                    exportByPerson[nama].push({...baseRow, "Daftar NIP": nip});
+                });
+            }
+          });
+        });
+      } else {
+        sortedDates.forEach(tgl => {
+          Object.keys(aggregatedByDateAndName[tgl]).forEach(nama => {
+            if(!exportByPerson[nama]) exportByPerson[nama] = [];
+            const rows = aggregatedByDateAndName[tgl][nama];
+            
+            rows.forEach(row => {
+              const baseRow = {
+                Tanggal: tgl,
+                "Nama Petugas": nama,
+                Rollopack: row.rollopack || '-',
+                Lemari: row.lemari || '-',
+                Rak: row.rak || '-'
+              };
+
+              const nips = getNIPArray([row]);
+              if(nips.length === 0) {
+                  exportByPerson[nama].push({...baseRow, "Daftar NIP": "-"});
+              } else {
+                  nips.forEach(nip => {
+                      exportByPerson[nama].push({...baseRow, "Daftar NIP": nip});
+                  });
+              }
             });
-        }
-      });
+          });
+        });
+      }
 
       Object.keys(exportByPerson).sort().forEach(nama => {
         const ws = XLSX.utils.json_to_sheet(exportByPerson[nama]);
@@ -1056,22 +1142,22 @@
         let payload = [];
         
         selectedRowsForModal.forEach(row => {
-            const baseRow = {
-              Tanggal: row.tanggal || '-',
-              "Nama Petugas": row.namaPetugas || 'Tanpa Nama',
-              Rollopack: row.rollopack || '-',
-              Lemari: row.lemari || '-',
-              Rak: row.rak || '-'
-            };
+          const baseRow = {
+            Tanggal: row.tanggal || '-',
+            "Nama Petugas": selectedNameForModal,
+            Rollopack: row.rollopack || '-',
+            Lemari: row.lemari || '-',
+            Rak: row.rak || '-'
+          };
 
-            const nips = getNIPArray([row]);
-            if(nips.length === 0) {
-                payload.push({...baseRow, "Daftar NIP": "-"});
-            } else {
-                nips.forEach(nip => {
-                    payload.push({...baseRow, "Daftar NIP": nip});
-                });
-            }
+          const nips = getNIPArray([row]);
+          if(nips.length === 0) {
+              payload.push({...baseRow, "Daftar NIP": "-"});
+          } else {
+              nips.forEach(nip => {
+                  payload.push({...baseRow, "Daftar NIP": nip});
+              });
+          }
         });
         
         const wb = XLSX.utils.book_new();
