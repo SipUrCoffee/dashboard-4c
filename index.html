@@ -316,7 +316,7 @@
             <h2 class="text-base font-medium text-slate-700 m-0">Pencatatan Arsip ASN Golongan IV/c ke Atas</h2>
           </div>
         </div>
-        <div class="flex justify-between text-xs font-semibold text-slate-600 mt-4 px-2 border-t border-slate-200 pt-2">
+        <div class="flex justify-between items-baseline text-xs font-semibold text-slate-600 mt-4 px-2 border-t border-slate-200 pt-2">
           <span id="print-meta-date">Rentang Waktu: -</span>
           <span id="print-meta-total-nip" class="text-[#013068] font-bold text-sm">Total Akumulasi NIP: -</span>
           <span id="print-meta-timestamp">Waktu Cetak: -</span>
@@ -609,7 +609,7 @@
 
           htmlContent += `
             <div class="mb-8 ${index > 0 ? 'print-page-break' : ''}">
-              <h3 class="text-lg font-bold text-[#013068] mb-3 border-b-2 border-[#013068] pb-2 uppercase" style="page-break-after: avoid; break-after: avoid;">Data Kinerja Lengkap: ${nama}</h3>
+              <h3 class="text-lg font-bold text-[#013068] -mt-2 mb-3 border-b-2 border-[#013068] pb-2 uppercase" style="page-break-after: avoid; break-after: avoid;">Data Kinerja Lengkap: ${nama}</h3>
               <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
                 <thead class="bg-[#013068]">
                   <tr>
@@ -633,20 +633,6 @@
             </div>
           `;
       });
-
-      const grandTotalNIP = filteredData.reduce((sum, row) => sum + (parseInt(row.jumlahNIP) || 0), 0);
-      htmlContent += `
-          <div class="mt-8">
-            <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
-              <tbody class="bg-white">
-                <tr class="bg-slate-100 font-bold text-lg">
-                  <td class="px-4 py-4 text-right border border-slate-300 uppercase">Grand Total Akumulasi Seluruh NIP Yang Dikerjakan:</td>
-                  <td class="px-4 py-4 text-center text-[#013068] border border-slate-300 w-1/4">${grandTotalNIP.toLocaleString('id-ID')}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-      `;
 
       printContainer.innerHTML = htmlContent;
     };
@@ -1047,9 +1033,8 @@
 
       const compactLayoutEl = document.getElementById('compact-print-layout');
       compactLayoutEl.innerHTML = `
-        <div class="mb-8">
-          <h3 class="text-xl font-bold text-[#013068] mb-1 text-center uppercase">Ringkasan Akumulasi Kinerja Petugas</h3>
-          <p class="text-sm font-semibold text-slate-600 text-center mb-4 border-b-2 border-[#013068] pb-2">Rentang Waktu: ${rangeText}</p>
+       <div class="mb-8">
+          <h3 class="text-xl font-bold text-[#013068] mb-6 text-center uppercase">Rentang Waktu: ${rangeText}</h3>
           <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
             <thead class="bg-[#013068]">
               <tr>
