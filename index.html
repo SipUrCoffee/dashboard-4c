@@ -889,7 +889,7 @@
         const rows = parsed.slice(1);
 
         globalData = rows.filter(row => row.length > 1).map((row, index) => {
-             // PERUBAHAN ADA DI SINI:
+          // PERUBAHAN ADA DI SINI:
           // Hanya mencari dari kolom "tanggal" dan secara eksplisit mengabaikan "timestamp" atau "waktu"
           let rawTanggal = getColumnVal(row, headers, ['tanggal']);
           
